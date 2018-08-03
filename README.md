@@ -1,2 +1,15 @@
 # RustyLife
-An simple implementation of Game of Life in Rust. 
+An simple implementation of Game of Life in Rust.
+
+This is uses several ideas from the implementation of snake from Redox-OS (https://github.com/redox-os/games/tree/master/src/snake).
+
+At the current state the game works, but could use several improvements.
+
+## TO-DO
+
+- Better rendering to reduce flicker.
+- Have status bar(s) outside of world.
+- Allow pause and update during run.
+- Get accepted into Redox-OS game collection.
+
+
