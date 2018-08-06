@@ -5,6 +5,10 @@ This is uses several ideas from the implementation of snake from Redox-OS (https
 
 At the current state the game works, but could use several improvements.
 
+## Features.
+
+We use a "toriodal" world in the sense that the left boundary is "glued" to the right boundary and the bottom boundary is "glued" to the top boundary. A glider leaving hitting the bottom boundary will reappear at the top boundary. See below screenshot for example.
+
 ## Screenshot
 
 [![Rusty Life](https://media.giphy.com/media/dB1Go9uCBS72Eck09h/giphy.gif)](https://media.giphy.com/media/dB1Go9uCBS72Eck09h/giphy.gif)
@@ -13,6 +17,7 @@ At the current state the game works, but could use several improvements.
 
 ## TO-DO
 
+- Switch between toriodal mode, and "dead-outside-of-screen" mode.
 - Allow pause and update during run.
 - Get accepted into Redox-OS game collection.
 
