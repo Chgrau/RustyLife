@@ -7,7 +7,7 @@ At the current state the game works, but could use several improvements.
 
 ## Screenshot
 
-[![Rusty Life](https://media.giphy.com/media/QfswZGVlcSmiMtbj6s/giphy.gif)](https://postimg.cc/image/v2c3vx4z5/)
+[![Rusty Life](https://media.giphy.com/media/QfswZGVlcSmiMtbj6s/giphy.gif)](https://media.giphy.com/media/QfswZGVlcSmiMtbj6s/giphy.gif)
 
 ## TO-DO
 
