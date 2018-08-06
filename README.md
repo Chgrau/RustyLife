@@ -11,9 +11,8 @@ At the current state the game works, but could use several improvements.
 
 ## TO-DO
 
-- Better rendering to reduce flicker.
-- Have status bar(s) outside of world.
 - Allow pause and update during run.
 - Get accepted into Redox-OS game collection.
+
 
 
