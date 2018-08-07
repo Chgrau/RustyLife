@@ -96,7 +96,6 @@ impl<R: Read, W: Write> Game<R, W> {
             row_number = row_number + 1;
             write!(self.stdout,"{}",cursor::Goto(2,row_number)).unwrap();
         }
-
     }
 
     fn splash(&mut self) {
@@ -159,7 +158,8 @@ impl<R: Read, W: Write> Game<R, W> {
     fn draw_init_bar(&mut self) {
         write!(
             self.stdout,
-            "{}{}{}{}",
+            "{}{}{}{}{}",
+            clear::CurrentLine,
             style::Bold,
             cursor::Goto(((self.term_width - 60) / 2) as u16, 1),
             "Use wasd/kjhl to move, spacebar to switch cell, 'p' to start.",
@@ -167,10 +167,23 @@ impl<R: Read, W: Write> Game<R, W> {
         ).unwrap();
     }
 
+    fn draw_pause_bar(&mut self) {
+        write!(
+            self.stdout,
+            "{}{}{}{}{}",
+            clear::CurrentLine,
+            style::Bold,
+            cursor::Goto(((self.term_width - 30) / 2) as u16, 1),
+            "Paused. Press spacebar to resume",
+            style::Reset
+        ).unwrap();
+    }
+
     fn draw_run_bar(&mut self) {
         write!(
             self.stdout,
-            "{}{}{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}{}{}",
+            clear::CurrentLine,
             style::Bold,
             cursor::Goto(2, 1),
             "Gen: ",
@@ -180,7 +193,7 @@ impl<R: Read, W: Write> Game<R, W> {
             self.delay,
             "    ",
             cursor::Goto(30, 1),
-            "+/- control delay speed, 'q' quit.",
+            "+/- control delay speed, 'p' pause, 'q' quit.",
             style::Reset,
         ).unwrap();
     }
@@ -204,6 +217,17 @@ impl<R: Read, W: Write> Game<R, W> {
                 b'q' => break,
                 b'+' => self.speed_up(),
                 b'-' => self.speed_down(),
+                b'p' => {
+                    self.draw_pause_bar();
+                    self.stdout.flush().unwrap();
+                    loop {
+                        self.stdin.read(&mut buf).unwrap();
+                        match buf[0] {
+                            b' ' => break,
+                            _    => {}
+                        }
+                    }
+                }
                 _ => {}
             }
             self.advance_world();
@@ -241,8 +265,9 @@ fn main() {
     let width: usize;
     write!(
         stdout,
-        "{}{}",
+        "{}{}{}",
         clear::All,
+        cursor::Hide,
         cursor::Goto(1, 1),
     ).unwrap();
 
@@ -250,24 +275,18 @@ fn main() {
         Ok((term_width, term_height)) => {
             height = term_height as usize;
             width = term_width as usize;
-            write!(
-                stdout,
-                "Initializing..."
-            ).unwrap();
         }
         _err => {
             height = 32;
             width = 32;
             write!(
                 stdout,
-                "Couldn't read terminal size, using default sizes (32 x 32)"
+                "Couldn't read terminal size, using default size (32 x 32) for world."
             ).unwrap();
+            stdout.flush().unwrap();
+            sleep(Duration::from_millis(2000));
         }
     }
-
-    stdout.flush().unwrap();
-
-    sleep(Duration::from_millis(2000));
 
     let mut game = Game {
         world: build_empty_world(width-2, height-2),
@@ -279,7 +298,6 @@ fn main() {
         term_width : width as u16,
         term_height : height as u16,
     };
-
     game.splash();
     game.init();
     game.run()
