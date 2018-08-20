@@ -8,11 +8,11 @@ use termion::{async_stdin, clear, color, cursor, terminal_size,style};
 // To simplify types and arguments, we use a position structure.
 #[derive(Debug, Clone, Copy)]
 struct Pos {
-    x: usize,
-    y: usize,
+    x: u16,
+    y: u16,
 }
 
-fn pos(x: usize, y: usize) -> Pos {
+fn pos(x: u16, y: u16) -> Pos {
     Pos { x, y }
 }
 
@@ -32,18 +32,18 @@ enum Direction {
 #[derive(Debug, Clone)]
 struct World {
     // The width of the world
-    width: usize,
+    width: u16,
     // The height of the world
-    height: usize,
+    height: u16,
     // The cells in the world
     cells: Vec<Vec<bool>>,
 }
 
-fn build_empty_world(width: usize, height: usize) -> World {
+fn build_empty_world(width: u16, height: u16) -> World {
     World {
         width,
         height,
-        cells: vec![vec![false; width]; height],
+        cells: vec![vec![false; width as usize]; height as usize],
     }
 }
 
@@ -51,7 +51,7 @@ struct Game<R, W> {
     // The world of the game
     world: World,
     // The current generation of the world
-    generation: usize,
+    generation: u32,
     // The delay between generation
     delay: usize,
     // Position of cursor in world
@@ -72,8 +72,8 @@ impl<R: Read, W: Write> Game<R, W> {
         let mut old_world = self.world.clone();
         for x_step in 0..self.world.height {
             for y_step in 0..self.world.width {
-                self.world.cells[x_step][y_step] =
-                    next_cell_state(&mut old_world, pos(x_step, y_step))
+                self.world.cells[x_step as usize][y_step as usize] =
+                    next_cell_state(&mut old_world, pos(x_step as u16, y_step as u16))
             }
         }
         self.generation = self.generation + 1;
@@ -128,7 +128,7 @@ impl<R: Read, W: Write> Game<R, W> {
             let mut buf = [0];
             self.stdin.read(&mut buf).unwrap();
             match buf[0] {
-                b'p' => return,
+                b'p' => break,
                 b' ' => self.flip_cell(),
                 b'w' | b'k' => self.move_cursor(Direction::N),
                 b'd' | b'l' => self.move_cursor(Direction::E),
@@ -158,7 +158,8 @@ impl<R: Read, W: Write> Game<R, W> {
     fn draw_init_bar(&mut self) {
         write!(
             self.stdout,
-            "{}{}{}{}{}",
+            "{}{}{}{}{}{}",
+            cursor::Goto(1,1),
             clear::CurrentLine,
             style::Bold,
             cursor::Goto(((self.term_width - 60) / 2) as u16, 1),
@@ -170,11 +171,12 @@ impl<R: Read, W: Write> Game<R, W> {
     fn draw_pause_bar(&mut self) {
         write!(
             self.stdout,
-            "{}{}{}{}{}",
+            "{}{}{}{}{}{}",
+            cursor::Goto(1,1),
             clear::CurrentLine,
             style::Bold,
             cursor::Goto(((self.term_width - 30) / 2) as u16, 1),
-            "Paused. Press spacebar to resume",
+            "Paused. Press spacebar to resume, or 'i' to edit world.",
             style::Reset
         ).unwrap();
     }
@@ -182,7 +184,8 @@ impl<R: Read, W: Write> Game<R, W> {
     fn draw_run_bar(&mut self) {
         write!(
             self.stdout,
-            "{}{}{}{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            cursor::Goto(1,1),
             clear::CurrentLine,
             style::Bold,
             cursor::Goto(2, 1),
@@ -199,8 +202,8 @@ impl<R: Read, W: Write> Game<R, W> {
     }
 
     fn flip_cell(&mut self) {
-        self.world.cells[self.cursor.x][self.cursor.y] =
-            !(self.world.cells[self.cursor.x][self.cursor.y]);
+        self.world.cells[self.cursor.x as usize][self.cursor.y as usize] =
+            !(self.world.cells[self.cursor.x as usize][self.cursor.y as usize]);
     }
 
     fn move_cursor(&mut self, dir: Direction) {
@@ -224,6 +227,10 @@ impl<R: Read, W: Write> Game<R, W> {
                         self.stdin.read(&mut buf).unwrap();
                         match buf[0] {
                             b' ' => break,
+                            b'i' => {
+                                self.init();
+                                break;
+                            },
                             _    => {}
                         }
                     }
@@ -261,8 +268,8 @@ fn main() {
     let mut stdout = stdout().into_raw_mode().unwrap();
     let stdin = async_stdin();
 
-    let height: usize;
-    let width: usize;
+    let height: u16;
+    let width: u16;
     write!(
         stdout,
         "{}{}{}",
@@ -273,8 +280,8 @@ fn main() {
 
     match terminal_size() {
         Ok((term_width, term_height)) => {
-            height = term_height as usize;
-            width = term_width as usize;
+            height = term_height;
+            width = term_width;
         }
         _err => {
             height = 32;
@@ -295,8 +302,8 @@ fn main() {
         cursor: pos(1, 1),
         stdin: stdin,
         stdout: stdout,
-        term_width : width as u16,
-        term_height : height as u16,
+        term_width : width,
+        term_height : height,
     };
     game.splash();
     game.init();
@@ -312,7 +319,7 @@ fn main() {
 // See [https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Rules]
 fn next_cell_state(world: &mut World, pos: Pos) -> bool {
     let neighbours = neighbours(&world, pos);
-    if world.cells[pos.x][pos.y] {
+    if world.cells[pos.x as usize][pos.y as usize] {
         neighbours == 2 || neighbours == 3
     } else {
         neighbours == 3
@@ -333,7 +340,7 @@ fn neighbours(world: &World, cell_pos: Pos) -> usize {
 
     let mut sum = 0;
     for cell in &neighbours {
-        if world.cells[cell.x][cell.y] {
+        if world.cells[cell.x as usize][cell.y as usize] {
             sum = sum + 1;
         }
     }
@@ -343,8 +350,8 @@ fn neighbours(world: &World, cell_pos: Pos) -> usize {
 // We consider the world to "wrap around", meaning that in a 10 x 10 world,
 // the cell at (0,0) has (0,9) and (9,0) as (among others) neighbours.
 fn wrap_index(world: &World, pos: Pos, dir: Direction) -> Pos {
-    let wrapped_x: usize;
-    let wrapped_y: usize;
+    let wrapped_x: u16;
+    let wrapped_y: u16;
     match dir {
         Direction::NW => {
             if pos.x == 0 {
