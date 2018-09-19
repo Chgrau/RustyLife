@@ -10,8 +10,9 @@ At the current state the game works, but could use several improvements.
 We use a "toriodal" world in the sense that the left boundary is "glued" to the right boundary and the bottom boundary is "glued" to the top boundary. A glider leaving hitting the bottom boundary will reappear at the top boundary. See below screenshot for example.
 
 ## Screenshot
-
-[![Rusty Life](https://media.giphy.com/media/dB1Go9uCBS72Eck09h/giphy.gif)](https://media.giphy.com/media/dB1Go9uCBS72Eck09h/giphy.gif)
+<p align=center> 
+  <img src = https://media.giphy.com/media/dB1Go9uCBS72Eck09h/giphy.gif alt="Rusty Life Glider Gun">
+</p>
 
 
 
